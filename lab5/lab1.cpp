@@ -1,79 +1,114 @@
-// Задания:
-// 1.	Для участия в ежегодном трансконтинентальном Ралли-марафоне «Дакар» по усложнен-ной трассе 
-// в Южной Америке выбраны грузовики КАМАЗ и Tatra, которые после 2000 года лидируют в зачете грузовиков.
-// Решите задачу сравнения скоростей движения грузовиков по разным по проходимости участкам трассы, 
-// а именно: по равнине, горам, пустыне.  Создайте и выдайте на экран таблицу результатов ралли - марафона. 
-// Определите победителя.
-// Для решения задачи используйте классы Kamaz и Tatra, а также функцию сравнения ско-ростей FrCreater ().  
-// Функция  FrCreater () возвращает число +1, если объект kamaz движется быстрее объекта tatra; нуль, 
-// если их скорости одинаковы; число -1, если объект kamaz  дви-жется медленнее объекта tatra . 
-// Оба класса содержат поля: «скорость» и «наименование» грузовой машины, 
-// а также мето-ды: инициализация и отображение полей на экране. 
-// Определитесь с идентификаторами доступа к членам класса, не нарушая принципа инкапсуляции. 
-// 2.	Сделайте функцию FrCreater() дружественной: классу  Kamaz, обоим классам Kamaz и Tatra. 
-// 3.	 Сделайте класс Tatra дружественным классу Kamaz.  
+// 1.Типы данных полезны там, где ошибки могут быть вызваны арифметическим переполне-нием, которое не допустимо.
+// Создайте и откомпилируйте класс Int. Перегрузите четыре бинарных целочисленных 
+// арифметических операции (+, -, *, /) и унарные операции постфиксной и префиксной   
+// форм ин-кремента с помощью внутренней операторной функции так, чтобы их можно было использо-вать 
+// для операций с объектами класса Int. 
+// Если результат какой-либо из них выходит за границы типа int (в 32-битной системе), 
+// имеющее значения от 2 147 483 648 до -2 147 483 648, то операция должна послать сообщение об ошибке и 
+// завершить программу.  Для выявления ошибки арифметического переполнения используйте концепцию исключения.
+//  Для облегчения проверки переполнения выполняйте вычисления с использованием ти-па  long double. 
+// При описании унарных операций используйте указатель this.
 
 #include <iostream>
-#include <string>
+#include <limits>
+
 using namespace std;
-class Tatra;
 
-class Kamaz {
+// Класс для работы с целыми числами с проверкой на переполнение
+class Int {
 private:
-    int speed;
-    string name; 
+    long double value;
 
 public:
-    Kamaz(int s, string n) : speed(s), name(n) {}
+    // Конструктор по умолчанию
+    Int() : value(0) {}
 
-    void display() {
-        cout << "Kamaz - Название: " << name << ", Скорость: " << speed << " км/ч" << endl;
+    // Конструктор с одним аргументом для инициализации значения
+    Int(long double initialValue) : value(initialValue) {
+        checkOverflow();
     }
 
-    friend int FrCreater(const Kamaz& kamaz, const Tatra& tatra);
-    friend class Tatra;
-};
-
-class Tatra {
-private:
-    int speed;
-    string name;
-
-public:
-    Tatra(int s, string n) : speed(s), name(n) {}
-
-    void display() {
-        cout << "Tatra - Название: " << name << ", Скорость: " << speed << " км/ч" << endl;
+    // Метод для проверки на переполнение
+    void checkOverflow() const {
+        if (value > numeric_limits<int>::max() || value < numeric_limits<int>::min()) {
+            cerr << "Ошибка арифметического переполнения. Завершение программы." << endl;
+            exit(EXIT_FAILURE);
+        }
     }
 
-    friend int FrCreater(const Kamaz& kamaz, const Tatra& tatra);
-    friend class Kamaz;
+    // Перегрузка операторов для арифметических операций
+    Int operator+(const Int& other) const {
+        Int result(value + other.value);
+        result.checkOverflow();
+        return result;
+    }
+
+    Int operator-(const Int& other) const {
+        Int result(value - other.value);
+        result.checkOverflow();
+        return result;
+    }
+
+    Int operator*(const Int& other) const {
+        Int result(value * other.value);
+        result.checkOverflow();
+        return result;
+    }
+
+    Int operator/(const Int& other) const {
+        if (other.value == 0) {
+            cerr << "Ошибка деления на ноль. Завершение программы." << endl;
+            exit(EXIT_FAILURE);
+        }
+
+        Int result(value / other.value);
+        result.checkOverflow();
+        return result;
+    }
+
+    // Перегрузка унарных операторов инкремента
+    Int operator++() {
+        value++;
+        checkOverflow();
+        return *this;
+    }
+
+    Int operator++(int) {
+        Int temp = *this;
+        value++;
+        checkOverflow();
+        return temp;
+    }
+
+    // Перегрузка оператора вывода для удобного вывода объектов класса
+    friend ostream& operator<<(ostream& out, const Int& obj) {
+        out << obj.value;
+        return out;
+    }
 };
-
-int FrCreater(const Kamaz& kamaz, const Tatra& tatra) {
-    if (kamaz.speed > tatra.speed)
-        return 1;
-    else if (kamaz.speed < tatra.speed)
-        return -1;
-    else
-        return 0;
-}
-
 int main() {
-    Kamaz kamaz(120, "Грузовик Камаз");
-    Tatra tatra(110, "Грузовик Tatra");
+    // Тестирование класса Int
+    Int a(214748);
+    Int b(2);
+    
+    Int sum = a + b;
+    cout << "Сумма: " << sum << endl;
 
-    kamaz.display();
-    tatra.display();
+    Int difference = a - b;
+    cout << "Разность: " << difference << endl;
 
-    int result = FrCreater(kamaz, tatra);
+    Int product = a * b;
+    cout << "Произведение: " << product << endl;
 
-    if (result == 1)
-        cout << "Грузовик Камаз быстрее, чем грузовик Tatra." << endl;
-    else if (result == -1)
-        cout << "Грузовик Tatra быстрее, чем грузовик Камаз." << endl;
-    else
-        cout << "Грузовик Камаз и грузовик Tatra имеют одинаковую скорость." << endl;
+    Int quotient = a / b;
+    cout << "Частное: " << quotient << endl;
+    
+    Int inc = ++b;
+    cout << "Инкремент: " << inc << endl;      
+
+    Int c(2147483647);
+    Int increment = ++c;
+    cout << "Инкремент: " << increment << endl;
 
     return 0;
 }
